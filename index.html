@@ -6,54 +6,13 @@
   <title>Harmony Medical Group</title>
   <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.3/babel.min.js"></script>
   <style>* { box-sizing: border-box; margin: 0; padding: 0; } body { background: #f5f5f7; }</style>
 </head>
 <body>
   <div id="root"></div>
-  <div id="loading" style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#888;font-size:14px;">
-    Loading Harmony Medical Group...
-  </div>
-  <script>
-  // Load Babel then compile and run the app
-  function loadScript(src, cb) {
-    var s = document.createElement('script');
-    s.src = src;
-    s.onload = cb;
-    s.onerror = function() { cb(new Error('Failed to load ' + src)); };
-    document.head.appendChild(s);
-  }
-
-  var babelSrc = 'https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.3/babel.min.js';
-  
-  loadScript(babelSrc, function(err) {
-    if (err) {
-      // Fallback CDN
-      loadScript('https://unpkg.com/@babel/standalone@7.23.3/babel.min.js', runApp);
-    } else {
-      runApp();
-    }
-  });
-
-  function runApp() {
-    document.getElementById('loading').style.display = 'none';
-    var code = document.getElementById('app-code').textContent;
-    var transformed = Babel.transform(code, { presets: ['react'] }).code;
-    var script = document.createElement('script');
-    script.text = transformed;
-    document.body.appendChild(script);
-    // Mount React app
-    var mountScript = document.createElement('script');
-    mountScript.text = [
-      'const domNode = document.getElementById("root");',
-      'const root = ReactDOM.createRoot(domNode);',
-      'root.render(React.createElement(App));'
-    ].join('\n');
-    document.body.appendChild(mountScript);
-  }
-  </script>
-  <script id="app-code" type="text/plain">
+  <script type="text/babel" data-presets="react">
 const { useState, useEffect, useRef, useCallback } = React;
-
 
 // ─── Supabase Config ──────────────────────────────────────────────────────────
 const SUPA_URL = "https://huupoodjnmythfgflzoz.supabase.co";
@@ -4426,6 +4385,9 @@ export default function App() {
   );
 }
 
+const domNode = document.getElementById('root');
+const root = ReactDOM.createRoot(domNode);
+root.render(React.createElement(App));
   </script>
 </body>
 </html>
