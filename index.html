@@ -254,7 +254,7 @@ const getCustomTAT = () => {
     custom.forEach(ct => {
       if(ct.name && ct.tat) {
         const nums = (ct.tat.match(/\d+/g)||[]).map(Number);
-        const maxDays = ct.tat.toLowerCase().includes("week") ? Math.max(...nums)*7 : Math.max(...nums)||10;
+        const maxDays = (ct.tat||"").toLowerCase().includes("week") ? Math.max(...nums)*7 : Math.max(...nums)||10;
         map[ct.name] = { max: maxDays, tat: ct.tat };
       }
     });
@@ -387,6 +387,103 @@ function CustomSelect({ value, onChange, options, placeholder, error, style }) {
   );
 }
 
+
+// ─── SearchableSelect ─────────────────────────────────────────────────────────
+function SearchableSelect({ value, onChange, options, placeholder, error, allowCustom, dir }) {
+  const [query, setQuery] = React.useState(value || "");
+  const [open, setOpen] = React.useState(false);
+  const [highlighted, setHighlighted] = React.useState(0);
+  const ref = React.useRef(null);
+  const inputRef = React.useRef(null);
+
+  React.useEffect(() => { setQuery(value || ""); }, [value]);
+
+  React.useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const filtered = options.filter(o => { const lbl = typeof o === "object" ? (o.label||"") : (o||""); return String(lbl).toLowerCase().includes((query||"").toLowerCase()); });
+
+  const select = (opt) => {
+    const val = typeof opt === "object" ? opt.value : opt;
+    const lbl = typeof opt === "object" ? opt.label : opt;
+    setQuery(lbl || "");
+    onChange(val);
+    setOpen(false);
+  };
+
+  const handleKey = (e) => {
+    if (!open) { setOpen(true); return; }
+    if (e.key === "ArrowDown") { setHighlighted(h => Math.min(h+1, filtered.length-1)); e.preventDefault(); }
+    else if (e.key === "ArrowUp") { setHighlighted(h => Math.max(h-1, 0)); e.preventDefault(); }
+    else if (e.key === "Enter") {
+      if (filtered.length > 0) select(filtered[Math.min(highlighted, filtered.length-1)]);
+      else if (allowCustom && query.trim()) select(query.trim());
+      e.preventDefault();
+    }
+    else if (e.key === "Escape") setOpen(false);
+  };
+
+  return (
+    <div ref={ref} style={{position:"relative"}}>
+      <input
+        ref={inputRef}
+        value={query}
+        onChange={e => { setQuery(e.target.value); setOpen(true); setHighlighted(0); onChange(e.target.value); }}
+        onFocus={() => setOpen(true)}
+        onKeyDown={handleKey}
+        placeholder={placeholder}
+        autoComplete="off"
+        style={{
+          width:"100%", background:"#fafafa",
+          border:`1.5px solid ${error?"#ef4444":open?"#111":"#e5e5e5"}`,
+          borderRadius:8, padding:"10px 14px", color:"#111", fontSize:14,
+          outline:"none", transition:"border .15s"
+        }}
+      />
+      {open && (filtered.length > 0 || (allowCustom && query.trim())) && (
+        <div style={{
+          position:"absolute", top:"calc(100% + 4px)", left:0, right:0,
+          background:"#fff", border:"1.5px solid #e5e5e5", borderRadius:10,
+          boxShadow:"0 8px 24px rgba(0,0,0,0.12)", zIndex:9999,
+          maxHeight:220, overflowY:"auto"
+        }}>
+          {filtered.map((opt, i) => {
+            const optVal = typeof opt === "object" ? opt.value : opt;
+            const optLbl = typeof opt === "object" ? opt.label : opt;
+            return (
+              <div key={i} onMouseDown={() => select(opt)}
+                style={{
+                  padding:"10px 14px", cursor:"pointer", fontSize:13,
+                  background: i===highlighted?"#f5f5f7":"#fff",
+                  color:"#111", fontWeight: optVal===value?600:400,
+                  borderBottom: i<filtered.length-1?"1px solid #f5f5f5":"none"
+                }}
+                onMouseEnter={() => setHighlighted(i)}>
+                {optLbl}
+                {optVal===value && <span style={{float:"end",color:"#aaa"}}>✓</span>}
+              </div>
+            );
+          })}
+          {allowCustom && query.trim() && !filtered.map(o=>typeof o==="object"?o.label:o).includes(query.trim()) && (
+            <div onMouseDown={() => select(query.trim())}
+              style={{padding:"10px 14px",cursor:"pointer",fontSize:13,color:"#6366f1",
+                background:highlighted===filtered.length?"#f5f5f7":"#fff",
+                borderTop:"1px solid #f0f0f0", fontWeight:500}}>
+              + {dir==="rtl"?`إضافة "${query.trim()}" كعميل جديد`:`Add "${query.trim()}" as new client`}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+// ─── SearchableSelect ─────────────────────────────────────────────────────────
+
 // ─── SampleForm ───────────────────────────────────────────────────────────────
 function SampleForm({ t, samples, editTarget, onSave, onCancel, isAdmin }) {
   const mob = useIsMobile();
@@ -512,16 +609,23 @@ function SampleForm({ t, samples, editTarget, onSave, onCancel, isAdmin }) {
             </div>
           </Field>
           <Field label={t.form.hospital}>
-            <CustomSelect
-              value={f._hospitalOther?"Other":f.hospital}
-              onChange={v=>{if(v==="Other"){set("_hospitalOther",true);set("hospital","");}else{set("_hospitalOther",false);set("hospital",v);}}}
-              options={[{value:"",label:"—"},...clientsList.map(x=>({value:x,label:x}))]}
-              placeholder="—"
+            <SearchableSelect
+              value={f._hospitalOther ? f.hospital : f.hospital}
+              onChange={v => {
+                if(v === "Other") { set("_hospitalOther", true); set("hospital", ""); }
+                else { set("_hospitalOther", false); set("hospital", v); }
+              }}
+              options={[
+                {value:"", label:"—"},
+                ...clientsList.filter(x=>x!=="Other").map(x=>({value:x, label:x})),
+                {value:"Other", label: t.dir==="rtl" ? "أخرى (اكتب بنفسك)" : "Other (type manually)"}
+              ]}
+              placeholder={t.dir==="rtl" ? "ابحث أو اختر عميل..." : "Search or select client..."}
             />
             {f._hospitalOther && (
               <input value={f.hospital} onChange={e=>set("hospital",e.target.value)}
                 placeholder={t.dir==="rtl"?"اكتب اسم العميل...":"Type client name..."}
-                style={{...inp(),marginTop:8}}/>
+                style={{...inp(),marginTop:8}} autoFocus/>
             )}
           </Field>
         </div>
@@ -540,35 +644,46 @@ function SampleForm({ t, samples, editTarget, onSave, onCancel, isAdmin }) {
           </Field>
           <div style={{gridColumn:"1/-1"}}>
             <Field label={t.form.testType+" *"} error={errors.testType}>
-              <CustomSelect
-                value={f._testOther?"Other":f.testType}
-                onChange={v=>{if(v==="Other"){set("_testOther",true);set("testType","");}else{set("_testOther",false);set("testType",v);}}}
-                options={[...allTests.map(x=>({value:x,label:x})),{value:"Other",label:t.dir==="rtl"?"أخرى (اكتب بنفسك)":"Other (type manually)"}]}
-                placeholder="—"
+              <SearchableSelect
+                value={f._testOther ? f.testType : f.testType}
+                onChange={v=>{
+                  if(v==="Other"){set("_testOther",true);set("testType","");}
+                  else{set("_testOther",false);set("testType",v);}
+                }}
+                options={[
+                  ...allTests.map(x=>({value:x,label:x})),
+                  {value:"Other",label:t.dir==="rtl"?"أخرى (اكتب بنفسك)":"Other (type manually)"}
+                ]}
+                placeholder={t.dir==="rtl"?"ابحث أو اختر نوع الفحص...":"Search or select test type..."}
                 error={errors.testType}
+                allowCustom={false}
               />
               {f._testOther && (
                 <input value={f.testType} onChange={e=>set("testType",e.target.value)}
                   placeholder={t.dir==="rtl"?"اكتب اسم الفحص...":"Type test name..."}
-                  style={{...inp(),marginTop:8}}/>
+                  style={{...inp(),marginTop:8}} autoFocus/>
               )}
             </Field>
           </div>
           <Field label={t.form.externalLab+" *"} error={errors.externalLab}>
-            <CustomSelect
-              value={f._labOther?"Other":f.externalLab}
+            <SearchableSelect
+              value={f._labOther ? f.externalLab : f.externalLab}
               onChange={v=>{
                 if(v==="Other"){set("_labOther",true);set("externalLab","");}
                 else{set("_labOther",false);set("externalLab",v);}
               }}
-              options={t.labs.map(x=>({value:x,label:x}))}
-              placeholder="—"
+              options={[
+                ...t.labs.filter(x=>x!=="Other").map(x=>({value:x,label:x})),
+                {value:"Other",label:t.dir==="rtl"?"أخرى (اكتب بنفسك)":"Other (type manually)"}
+              ]}
+              placeholder={t.dir==="rtl"?"ابحث أو اختر المعمل...":"Search or select lab..."}
               error={errors.externalLab}
+              allowCustom={false}
             />
             {f._labOther && (
               <input value={f.externalLab} onChange={e=>set("externalLab",e.target.value)}
                 placeholder={t.dir==="rtl"?"اكتب اسم المعمل...":"Type lab name..."}
-                style={{...inp(),marginTop:8}}/>
+                style={{...inp(),marginTop:8}} autoFocus/>
             )}
           </Field>
           <Field label={t.form.status}>
