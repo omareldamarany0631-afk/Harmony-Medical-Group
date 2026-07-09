@@ -498,7 +498,22 @@ function SampleForm({ t, samples, editTarget, onSave, onCancel, isAdmin }) {
   // Load custom tests from localStorage and merge + sort alphabetically
   const customTests = (() => { try { return JSON.parse(localStorage.getItem("harmony_custom_tests")||"[]"); } catch { return []; } })();
   const customTestNames = customTests.map(ct=>ct.name);
-  const allTests = [...new Set([...t.tests.filter(x=>x!=="Other"), ...customTestNames, "Other"])].sort((a,b)=>a==="Other"?1:b==="Other"?-1:a.localeCompare(b));
+  
+  // Load all tests from BUILTIN_TESTS + Supabase extra_tests
+  const [allExtraTests, setAllExtraTests] = React.useState([]);
+  React.useEffect(() => {
+    loadExtraTests().then(v => { if(Array.isArray(v)) setAllExtraTests(v); });
+  }, []);
+  
+  const allBuiltinNames = BUILTIN_TESTS.map(t=>t.name);
+  const allExtraNames = allExtraTests.map(t=>t.name);
+  
+  const allTests = [...new Set([
+    ...allBuiltinNames,
+    ...allExtraNames,
+    ...t.tests.filter(x=>x!=="Other"),
+    ...customTestNames
+  ])].sort((a,b)=>a.localeCompare(b));
   // TAT map: merge built-in TAT_MAP with custom tests TAT
   const customTATMap = {};
   customTests.forEach(ct=>{ if(ct.name&&ct.tat){ const nums=(ct.tat.match(/\d+/g)||[]).map(Number); const maxDays=ct.tat.toLowerCase().includes("week")?Math.max(...nums)*7:Math.max(...nums)||10; customTATMap[ct.name]={max:maxDays, tat:ct.tat}; } });
@@ -648,7 +663,19 @@ function SampleForm({ t, samples, editTarget, onSave, onCancel, isAdmin }) {
                 value={f._testOther ? f.testType : f.testType}
                 onChange={v=>{
                   if(v==="Other"){set("_testOther",true);set("testType","");}
-                  else{set("_testOther",false);set("testType",v);}
+                  else{
+                    set("_testOther",false);
+                    set("testType",v);
+                    // Auto-fill lab and TAT from tests data
+                    const found = [...BUILTIN_TESTS,...allExtraTests].find(t=>t.name===v);
+                    if(found){
+                      if(found.lab && found.lab!=="Other"){
+                        // Map lab name to match t.labs format
+                        const labMatch = (t.labs||[]).find(l=>l.includes(found.lab.split(" - ")[0]) || found.lab.includes(l.split(" — ")[0]));
+                        if(labMatch){set("_labOther",false);set("externalLab",labMatch);}
+                      }
+                    }
+                  }
                 }}
                 options={[
                   ...allTests.map(x=>({value:x,label:x})),
