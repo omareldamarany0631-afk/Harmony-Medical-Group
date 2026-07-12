@@ -4066,6 +4066,16 @@ function App() {
     });
   }, []);
   const [editTarget, setEditTarget] = useState(null);
+  // Wrap setTab to track history
+  const navigateTo = (newTab) => {
+    setTab(newTab);
+    setTabHistory(h => {
+      // Don't add same tab twice in a row
+      if (h[h.length-1] === newTab) return h;
+      // Keep max 10 history items
+      return [...h.slice(-9), newTab];
+    });
+  };
   const [showAlert, setShowAlert] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
@@ -4570,7 +4580,7 @@ function App() {
             </div>
           )}
 
-          {tab==="form" && <SampleForm t={t} samples={samples} editTarget={editTarget} onSave={handleSave} onCancel={()=>{setTab("samples");setEditTarget(null);}} isAdmin={isAdmin}/>}
+          {tab==="form" && <SampleForm t={t} samples={samples} editTarget={editTarget} onSave={handleSave} onCancel={()=>{navigateTo("samples");setEditTarget(null);}} isAdmin={isAdmin}/>}
           {tab==="samples" && <SamplesPage t={t} samples={samples} setSamples={setSamples} onEdit={handleEdit} onDelete={handleDelete} onAddNew={()=>{setEditTarget(null);setTab("form");}} lang={lang} isAdmin={isAdmin}/>}
           {tab==="accounting" && <Accounting t={t} samples={samples} setSamples={setSamples}/>}
           {tab==="clients" && <ClientsPage t={t} samples={samples} isAdmin={isAdmin}/>}
