@@ -3212,7 +3212,7 @@ function LoginPage({ onLogin, lang, setLang, onSignUp, onForgot }) {
   return (
     <div dir={ar?"rtl":"ltr"} style={{
       fontFamily: ar?"'Cairo','Segoe UI',sans-serif":"'Inter','Segoe UI',sans-serif",
-      minHeight:"100vh", background:"linear-gradient(135deg,#667eea 0%,#764ba2 100%)",
+      minHeight:"100vh", background:"linear-gradient(135deg,#2d2d2d 0%,#111111 100%)",
       display:"flex", alignItems:"center", justifyContent:"center", padding:20
     }}>
       <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -3226,7 +3226,7 @@ function LoginPage({ onLogin, lang, setLang, onSignUp, onForgot }) {
       <div style={{width:"100%",maxWidth:420}}>
         {/* Logo */}
         <div style={{textAlign:"center",marginBottom:32}}>
-          <img src={HARMONY_LOGO} alt="Harmony Medical Group" style={{width:90,height:90,objectFit:"contain",background:"rgba(255,255,255,0.95)",borderRadius:18,padding:8,marginBottom:14}}/>
+          <img src={HARMONY_LOGO} alt="Harmony Medical Group" style={{width:130,height:130,objectFit:"contain",background:"rgba(255,255,255,0.95)",borderRadius:20,padding:10,marginBottom:14}}/>
           <h1 style={{color:"#fff",fontSize:28,fontWeight:700,margin:"0 0 6px"}}>Harmony Medical Group</h1>
           <p style={{color:"rgba(255,255,255,0.75)",fontSize:14,margin:0}}>{ar?"نظام إدارة العينات والمحاسبة":"Sample Tracking & Accounting"}</p>
         </div>
@@ -3281,7 +3281,7 @@ function LoginPage({ onLogin, lang, setLang, onSignUp, onForgot }) {
           </div>
 
           <button onClick={handleLogin} disabled={loading}
-            style={{width:"100%",background:loading?"#a5b4fc":"linear-gradient(135deg,#6366f1,#8b5cf6)",color:"#fff",border:"none",borderRadius:12,padding:"14px",cursor:loading?"default":"pointer",fontSize:16,fontWeight:700,transition:"all .2s",boxShadow:"0 4px 15px rgba(99,102,241,0.4)"}}>
+            style={{width:"100%",background:loading?"#555":"#111",color:"#fff",border:"none",borderRadius:12,padding:"14px",cursor:loading?"default":"pointer",fontSize:16,fontWeight:700,transition:"all .2s",boxShadow:"0 4px 15px rgba(0,0,0,0.3)"}}>
             {loading?(ar?"جاري الدخول...":"Signing in..."):(ar?"دخول":"Sign In")}
           </button>
 
@@ -4007,14 +4007,14 @@ function ForgotPasswordPage({ onBack, lang, setLang }) {
   };
 
   return (
-    <div dir={ar?"rtl":"ltr"} style={{fontFamily:ar?"'Cairo','Segoe UI',sans-serif":"'Inter','Segoe UI',sans-serif",minHeight:"100vh",background:"linear-gradient(135deg,#667eea 0%,#764ba2 100%)",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+    <div dir={ar?"rtl":"ltr"} style={{fontFamily:ar?"'Cairo','Segoe UI',sans-serif":"'Inter','Segoe UI',sans-serif",minHeight:"100vh",background:"linear-gradient(135deg,#2d2d2d 0%,#111111 100%)",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
       <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
       <button onClick={()=>setLang(l=>l==="ar"?"en":"ar")} style={{position:"fixed",top:16,insetInlineEnd:16,background:"rgba(255,255,255,0.2)",border:"1px solid rgba(255,255,255,0.4)",color:"#fff",borderRadius:8,padding:"6px 12px",cursor:"pointer",fontSize:13}}>
         🌐 {ar?"English":"عربي"}
       </button>
       <div style={{width:"100%",maxWidth:420}}>
         <div style={{textAlign:"center",marginBottom:28}}>
-          <img src={HARMONY_LOGO} alt="Harmony Medical Group" style={{width:90,height:90,objectFit:"contain",background:"rgba(255,255,255,0.95)",borderRadius:18,padding:8,marginBottom:14}}/>
+          <img src={HARMONY_LOGO} alt="Harmony Medical Group" style={{width:130,height:130,objectFit:"contain",background:"rgba(255,255,255,0.95)",borderRadius:20,padding:10,marginBottom:14}}/>
           <h1 style={{color:"#fff",fontSize:26,fontWeight:700,margin:"0 0 4px",letterSpacing:"-0.5px"}}>Harmony Medical Group</h1>
           <p style={{color:"rgba(255,255,255,0.7)",fontSize:13,margin:0}}>{ar?"استعادة كلمة المرور":"Password Recovery"}</p>
         </div>
@@ -4077,14 +4077,14 @@ function SignUpPage({ onSignUp, onBack, lang, setLang }) {
   };
 
   return (
-    <div dir={ar?"rtl":"ltr"} style={{fontFamily:ar?"'Cairo','Segoe UI',sans-serif":"'Inter','Segoe UI',sans-serif",minHeight:"100vh",background:"linear-gradient(135deg,#667eea 0%,#764ba2 100%)",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+    <div dir={ar?"rtl":"ltr"} style={{fontFamily:ar?"'Cairo','Segoe UI',sans-serif":"'Inter','Segoe UI',sans-serif",minHeight:"100vh",background:"linear-gradient(135deg,#2d2d2d 0%,#111111 100%)",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
       <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
       <button onClick={()=>setLang(l=>l==="ar"?"en":"ar")} style={{position:"fixed",top:16,insetInlineEnd:16,background:"rgba(255,255,255,0.2)",border:"1px solid rgba(255,255,255,0.4)",color:"#fff",borderRadius:8,padding:"6px 12px",cursor:"pointer",fontSize:13}}>
         🌐 {ar?"English":"عربي"}
       </button>
       <div style={{width:"100%",maxWidth:420}}>
         <div style={{textAlign:"center",marginBottom:28}}>
-          <img src={HARMONY_LOGO} alt="Harmony Medical Group" style={{width:90,height:90,objectFit:"contain",background:"rgba(255,255,255,0.95)",borderRadius:18,padding:8,marginBottom:14}}/>
+          <img src={HARMONY_LOGO} alt="Harmony Medical Group" style={{width:130,height:130,objectFit:"contain",background:"rgba(255,255,255,0.95)",borderRadius:20,padding:10,marginBottom:14}}/>
           <h1 style={{color:"#fff",fontSize:26,fontWeight:700,margin:"0 0 4px",letterSpacing:"-0.5px"}}>Harmony Medical Group</h1>
           <p style={{color:"rgba(255,255,255,0.7)",fontSize:13,margin:0}}>{ar?"إنشاء حساب جديد":"Create new account"}</p>
         </div>
@@ -4413,7 +4413,7 @@ function App() {
               <span style={{display:"block",width:20,height:2,background:"#111",borderRadius:2,transition:"all .25s",transform:mobileMenuOpen?"rotate(-45deg) translate(5px,-5px)":"none"}}/>
             </button>
           )}
-          <div style={{width:34,height:34,borderRadius:9,background:"#111",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></div>
+          <img src={HARMONY_LOGO} alt="Harmony" style={{width:40,height:40,objectFit:"contain",borderRadius:8,background:"#fff",flexShrink:0}}/>
           <div>
             <div style={{fontWeight:700,fontSize:mob?13:15,color:"#111",letterSpacing:"-0.3px"}}>{t.appName}</div>
             {!mob && <div style={{fontSize:11,color:"#aaa",marginTop:1}}>{t.tagline}</div>}
