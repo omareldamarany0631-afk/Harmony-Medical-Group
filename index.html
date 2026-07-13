@@ -1890,6 +1890,7 @@ function ShipmentsPage({ t, samples, setSamples }) {
   const [showNewModal, setShowNewModal] = useState(false);
   const [editModal, setEditModal] = useState(null);        // shipNum being edited
   const [newShipId, setNewShipId] = useState("");
+  const [newShipDate, setNewShipDate] = useState(new Date().toISOString().slice(0,10));
   const [selectedPatients, setSelectedPatients] = useState([]);
   const [patientSearch, setPatientSearch] = useState("");
   const [editingShipment, setEditingShipment] = useState(null);
@@ -1928,7 +1929,7 @@ function ShipmentsPage({ t, samples, setSamples }) {
   const createShipment = () => {
     if (!newShipId.trim() || selectedPatients.length === 0) return;
     setSamples(p => p.map(s =>
-      selectedPatients.includes(s.id) ? {...s, shipmentNumber: newShipId.trim()} : s
+      selectedPatients.includes(s.id) ? {...s, shipmentNumber: newShipId.trim(), sentDate: newShipDate||s.sentDate} : s
     ));
     setShowNewModal(false);
     setNewShipId("");
@@ -2135,18 +2136,27 @@ function ShipmentsPage({ t, samples, setSamples }) {
             {/* Modal header */}
             <div style={{padding:"18px 20px",borderBottom:"1px solid #f0f0f0",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <h3 style={{margin:0,fontSize:17,fontWeight:700,color:"#111"}}>🚚 {ar?"شحنة جديدة":"New Shipment"}</h3>
-              <button onClick={()=>{setShowNewModal(false);setNewShipId("");setSelectedPatients([]);setPatientSearch("");}}
+              <button onClick={()=>{setShowNewModal(false);setNewShipId("");setNewShipDate(new Date().toISOString().slice(0,10));setSelectedPatients([]);setPatientSearch("");}}
                 style={{background:"none",border:"none",fontSize:22,cursor:"pointer",color:"#aaa",lineHeight:1}}>×</button>
             </div>
 
-            {/* Shipment number input */}
-            <div style={{padding:"16px 20px",borderBottom:"1px solid #f0f0f0"}}>
-              <label style={{display:"block",fontSize:13,fontWeight:600,color:"#555",marginBottom:6}}>
-                {ar?"رقم الشحنة *":"Shipment Number *"}
-              </label>
-              <input value={newShipId} onChange={e=>setNewShipId(e.target.value)}
-                placeholder={ar?"مثال: SHP-2024-001":"e.g. SHP-2024-001"}
-                style={{...inp(),fontFamily:"monospace"}}/>
+            {/* Shipment number + date */}
+            <div style={{padding:"16px 20px",borderBottom:"1px solid #f0f0f0",display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              <div>
+                <label style={{display:"block",fontSize:13,fontWeight:600,color:"#555",marginBottom:6}}>
+                  {ar?"رقم الشحنة *":"Shipment Number *"}
+                </label>
+                <input value={newShipId} onChange={e=>setNewShipId(e.target.value)}
+                  placeholder={ar?"مثال: SHP-2024-001":"e.g. SHP-2024-001"}
+                  style={{...inp(),fontFamily:"monospace"}}/>
+              </div>
+              <div>
+                <label style={{display:"block",fontSize:13,fontWeight:600,color:"#555",marginBottom:6}}>
+                  📅 {ar?"تاريخ الشحنة":"Shipment Date"}
+                </label>
+                <input type="date" value={newShipDate} onChange={e=>setNewShipDate(e.target.value)}
+                  style={inp()}/>
+              </div>
             </div>
 
             {/* Patient search */}
@@ -2202,7 +2212,7 @@ function ShipmentsPage({ t, samples, setSamples }) {
 
             {/* Modal footer */}
             <div style={{padding:"14px 20px",borderTop:"1px solid #f0f0f0",display:"flex",gap:10,justifyContent:"flex-end"}}>
-              <button onClick={()=>{setShowNewModal(false);setNewShipId("");setSelectedPatients([]);setPatientSearch("");}}
+              <button onClick={()=>{setShowNewModal(false);setNewShipId("");setNewShipDate(new Date().toISOString().slice(0,10));setSelectedPatients([]);setPatientSearch("");}}
                 style={{background:"#fafafa",color:"#555",border:"none",borderRadius:9,padding:"10px 20px",cursor:"pointer",fontSize:14}}>
                 {ar?"إلغاء":"Cancel"}
               </button>
