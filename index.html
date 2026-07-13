@@ -127,7 +127,7 @@ const T = {
     tagline:"نظام إدارة العينات والمحاسبة",
     nav:{ dashboard:"الرئيسية", newSample:"إضافة عينة", samples:"العينات", accounting:"المحاسبة", reports:"التقارير", clients:"العملاء", results:"النتائج", addTest:"إضافة فحص جديد", shipments:"الشحنات", settings:"الإعدادات", invoice:"الفواتير", tests:"الفحوصات", clientsBook:"العملاء" },
     dash:{ total:"إجمالي العينات", pending:"قيد الإرسال", abroad:"في الخارج", overdue:"متأخرة TAT", done:"نتائج وصلت", revenue:"الإيرادات" },
-    statuses:{ received:"مستلمة", sent:"أُرسلت للخارج", abroad:"في الخارج", overdue:"متأخرة ⚠", done:"نتيجة وصلت" },
+    statuses:{ received:"مستلمة", sent:"أُرسلت للخارج", abroad:"في الخارج", overdue:"متأخرة ⚠", done:"نتيجة وصلت", resample:"إعادة عينة 🔄" },
     payStatus:{ paid:"مدفوع", unpaid:"غير مدفوع", partial:"مدفوع جزئياً" },
     form:{
       heading:"بيانات المريض والعينة",
@@ -167,7 +167,7 @@ const T = {
     tagline:"Sample Tracking & Accounting",
     nav:{ dashboard:"Home", newSample:"Add Sample", samples:"Samples", accounting:"Accounting", reports:"Reports", clients:"Clients", results:"Results", addTest:"Add New Test", shipments:"Shipments", settings:"Settings", invoice:"Invoices", tests:"Tests", clientsBook:"Clients" },
     dash:{ total:"Total Samples", pending:"Pending", abroad:"Abroad", overdue:"TAT Overdue", done:"Results In", revenue:"Revenue" },
-    statuses:{ received:"Received", sent:"Sent Abroad", abroad:"Abroad", overdue:"Overdue ⚠", done:"Results In" },
+    statuses:{ received:"Received", sent:"Sent Abroad", abroad:"Abroad", overdue:"Overdue ⚠", done:"Results In", resample:"Resample 🔄" },
     payStatus:{ paid:"Paid", unpaid:"Unpaid", partial:"Partial" },
     form:{
       heading:"Patient & Sample Entry",
@@ -206,7 +206,7 @@ const T = {
 // ─── helpers ──────────────────────────────────────────────────────────────────
 const daysSince = d => d ? Math.floor((Date.now()-new Date(d))/86400000) : 0;
 const fmt = n => Number(n||0).toLocaleString();
-const SC = { received:"#6366f1",sent:"#3b82f6",abroad:"#f59e0b",overdue:"#ef4444",done:"#10b981" };
+const SC = { received:"#6366f1",sent:"#3b82f6",abroad:"#f59e0b",overdue:"#ef4444",done:"#10b981",resample:"#f97316" };
 const PC = { paid:"#10b981", unpaid:"#ef4444", partial:"#f59e0b" };
 const uid = () => Date.now().toString(36).toUpperCase().slice(-6);
 
