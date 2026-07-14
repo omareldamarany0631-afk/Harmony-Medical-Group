@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Harmony Medical Group</title>
   <meta name="description" content="Harmony Medical Group - Sample Tracking & Lab Management System">
-  <meta name="keywords" content="Harmony Medical Group, lab samples, genomic diagnostics, Egypt, MENA">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://hmg-eg.github.io/Harmony-Medical-Group/">
   <meta name="google-site-verification" content="c-Udw6u9WomHWdvMZbEmK0SBppgxpcpzH7tPzZnLq2w" />
@@ -1937,25 +1936,32 @@ function ShipmentsPage({ t, samples, setSamples }) {
     if (!newShipId.trim() || selectedPatients.length === 0) return;
     const shipId = newShipId.trim();
     const shipDate = newShipDate;
-    setSamples(p => {
-      const next = p.map(s =>
-        selectedPatients.includes(s.id) ? {...s, shipmentNumber: shipId, sentDate: shipDate||s.sentDate, status: "sent"} : s
+    
+    // Update samples state
+    setSamples(prev => {
+      const next = prev.map(s =>
+        selectedPatients.includes(s.id)
+          ? {...s, shipmentNumber: shipId, sentDate: shipDate||s.sentDate, status: "sent"}
+          : s
       );
-      // Save to localStorage immediately
       try { localStorage.setItem("harmony_samples", JSON.stringify(next)); } catch {}
-      // Save updated samples to Supabase
-      const toSave = next.filter(s => selectedPatients.includes(s.id));
-      toSave.forEach(async s => {
-        try {
-          await fetch(`${SUPA_URL}/rest/v1/samples`, {
-            method:"POST",
-            headers:{...SUPA_HEADERS,"Prefer":"resolution=merge-duplicates,return=minimal"},
-            body:JSON.stringify([{id:s.id,data:JSON.stringify({...s,resultPdf:null})}])
-          });
-        } catch {}
-      });
       return next;
     });
+
+    // Save to Supabase outside setSamples (safe async)
+    for (const sid of selectedPatients) {
+      const sample = samples.find(s => s.id === sid);
+      if (!sample) continue;
+      const updated = {...sample, shipmentNumber: shipId, sentDate: shipDate||sample.sentDate, status: "sent"};
+      try {
+        await fetch(`${SUPA_URL}/rest/v1/samples`, {
+          method: "POST",
+          headers: {...SUPA_HEADERS, "Prefer": "resolution=merge-duplicates,return=minimal"},
+          body: JSON.stringify([{id: updated.id, data: JSON.stringify({...updated, resultPdf: null})}])
+        });
+      } catch(e) { console.warn("Supabase save failed:", e); }
+    }
+
     setShowNewModal(false);
     setNewShipId("");
     setNewShipDate(new Date().toISOString().slice(0,10));
