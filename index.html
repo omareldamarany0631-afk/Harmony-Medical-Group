@@ -2325,10 +2325,26 @@ function ShipmentsPage({ t, samples, setSamples }) {
         </div>
       </div>
 
-      {/* Search */}
-      <input value={search} onChange={e=>setSearch(e.target.value)}
-        placeholder={ar?"🔍 ابحث برقم الشحنة أو اسم المريض...":"🔍 Search shipment number or patient name..."}
-        style={{width:"100%",boxSizing:"border-box",...inp(),padding:"10px 14px",marginBottom:16}}/>
+      {/* Search + Date Filter */}
+      <div style={{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap",alignItems:"center"}}>
+        <input value={search} onChange={e=>setSearch(e.target.value)}
+          placeholder={ar?"🔍 ابحث برقم الشحنة أو اسم المريض...":"🔍 Search shipment or patient..."}
+          style={{flex:1,minWidth:150,...inp(),padding:"10px 14px"}}/>
+        <div style={{display:"flex",alignItems:"center",gap:6}}>
+          <span style={{fontSize:12,color:"#888",whiteSpace:"nowrap"}}>📅 {ar?"من":"From"}</span>
+          <input type="date" value={filterDateFrom} onChange={e=>setFilterDateFrom(e.target.value)}
+            style={{...inp(),padding:"8px 10px",fontSize:13}}/>
+        </div>
+        <div style={{display:"flex",alignItems:"center",gap:6}}>
+          <span style={{fontSize:12,color:"#888",whiteSpace:"nowrap"}}>{ar?"إلى":"To"}</span>
+          <input type="date" value={filterDateTo} onChange={e=>setFilterDateTo(e.target.value)}
+            style={{...inp(),padding:"8px 10px",fontSize:13}}/>
+        </div>
+        {(filterDateFrom||filterDateTo) && (
+          <button onClick={()=>{setFilterDateFrom("");setFilterDateTo("");}}
+            style={{background:"none",border:"1px solid #e5e5e5",color:"#888",borderRadius:7,padding:"7px 10px",cursor:"pointer",fontSize:12}}>✕</button>
+        )}
+      </div>
 
       {/* Shipments list */}
       {shipmentKeys.length===0 && !search && (
