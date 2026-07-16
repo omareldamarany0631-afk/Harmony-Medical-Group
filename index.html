@@ -4320,7 +4320,15 @@ function App() {
   const setLang = (fn) => { const next = typeof fn==="function"?fn(lang):fn; try{localStorage.setItem("harmony_lang",next);}catch{} setLangState(next); };
   const t = T[lang];
   const [tab, setTabState] = useState("dashboard");
+  const [tabHistory, setTabHistory] = useState(["dashboard"]);
   const setTab = (v) => { setTabState(v); };
+  const navigateTo = (newTab) => {
+    setTabState(newTab);
+    setTabHistory(h => {
+      if (h[h.length-1] === newTab) return h;
+      return [...h.slice(-9), newTab];
+    });
+  };
   const [samples, setSamplesState] = useState(() => {
     try {
       const saved = localStorage.getItem("harmony_samples");
@@ -4393,9 +4401,10 @@ function App() {
       });
 
       setSamplesState(prev => {
-        const prevStr = JSON.stringify(prev.map(s=>s.id).sort());
-        const newStr = JSON.stringify(withOverdue.map(s=>s.id).sort());
-        if (prevStr === newStr && prev.length === withOverdue.length) return prev;
+        // Compare full content to detect status changes
+        const prevHash = prev.map(s=>s.id+":"+s.status+":"+(s.shipmentNumber||"")).sort().join("|");
+        const newHash = withOverdue.map(s=>s.id+":"+s.status+":"+(s.shipmentNumber||"")).sort().join("|");
+        if (prevHash === newHash && prev.length === withOverdue.length) return prev;
         try { localStorage.setItem("harmony_samples", JSON.stringify(withOverdue)); } catch {}
         return withOverdue;
       });
@@ -4406,7 +4415,7 @@ function App() {
   useEffect(() => {
     loadSamplesFromSupabase();
     // Poll every 30 seconds for changes from other devices
-    const interval = setInterval(() => loadSamplesFromSupabase(true), 30000);
+    const interval = setInterval(() => loadSamplesFromSupabase(true), 15000);
     return () => clearInterval(interval);
   }, []);
 
@@ -4469,8 +4478,8 @@ function App() {
       setSyncStatus("error");
       return false;
     } catch(e) {
-      console.warn("Supabase save failed (offline?):", e.message);
-      setSyncStatus("ok"); // Don't show error for network issues
+      // Network issue - save to localStorage only, will sync later
+      setSyncStatus("ok");
       return false;
     }
   };
