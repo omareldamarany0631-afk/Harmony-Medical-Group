@@ -1905,6 +1905,20 @@ function ShipmentsPage({ t, samples, setSamples, onRefresh }) {
   const [editShipId, setEditShipId] = useState("");        // rename shipment number
   const [filterDateFrom, setFilterDateFrom] = useState("");
   const [filterDateTo, setFilterDateTo] = useState("");
+  const [shipStatuses, setShipStatuses] = React.useState({});
+
+  // Load shipment statuses from Supabase
+  React.useEffect(() => {
+    loadFromCloud("shipment_statuses").then(v => {
+      if (v && typeof v === "object") setShipStatuses(v);
+    });
+  }, []);
+
+  const saveShipStatus = async (shipNum, status) => {
+    const updated = {...shipStatuses, [shipNum]: status};
+    setShipStatuses(updated);
+    try { await saveToCloud("shipment_statuses", updated); } catch {}
+  };
 
   // Group samples by shipmentNumber
   const shipmentMap = {};
@@ -2083,6 +2097,13 @@ function ShipmentsPage({ t, samples, setSamples, onRefresh }) {
           <div style={{display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
             {overdue>0 && <span style={{background:"#fafafa",color:"#be123c",borderRadius:6,padding:"2px 8px",fontSize:11,fontWeight:700}}>⚠{overdue}</span>}
             <span style={{background:"#f5f5f7",color:"#15803d",borderRadius:6,padding:"2px 8px",fontSize:11,fontWeight:600}}>{counts.done||0} ✓</span>
+            <select value={shipStatuses[shipNum]||"sent"} onClick={e=>e.stopPropagation()} onChange={e=>{e.stopPropagation();saveShipStatus(shipNum,e.target.value);}}
+              style={{background:SC[shipStatuses[shipNum]||"sent"]||"#6366f1",color:"#fff",border:"none",borderRadius:6,padding:"4px 8px",fontSize:11,fontWeight:600,cursor:"pointer",outline:"none",appearance:"none",WebkitAppearance:"none",paddingInlineEnd:18,backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='white'/%3E%3C/svg%3E")`,backgroundRepeat:"no-repeat",backgroundPosition:"calc(100% - 5px) center"}}>
+              <option value="sent" style={{background:"#fff",color:"#111"}}>{ar?"أُرسلت للخارج":"Sent Abroad"}</option>
+              <option value="abroad" style={{background:"#fff",color:"#111"}}>{ar?"وصلت":"Arrived"}</option>
+              <option value="overdue" style={{background:"#fff",color:"#111"}}>{ar?"متأخرة ⚠":"Overdue ⚠"}</option>
+              <option value="done" style={{background:"#fff",color:"#111"}}>{ar?"نتيجة وصلت":"Results In"}</option>
+            </select>
             <button onClick={e=>{e.stopPropagation();openEdit(shipNum);}}
               style={{background:"#f5f5f7",color:"#111",border:"1px solid #e5e5e5",borderRadius:7,padding:"4px 10px",cursor:"pointer",fontSize:12,fontWeight:600}}>
               ✏ {ar?"تعديل":"Edit"}
@@ -2199,7 +2220,29 @@ function ShipmentsPage({ t, samples, setSamples, onRefresh }) {
                       <div style={{fontSize:11,color:"#888",marginTop:1}}>{s.sampleCode} · {s.testType}</div>
                     </div>
                     <div style={{flexShrink:0,textAlign:"end"}}>
-                      <span style={{background:"#fff",color:"#111",borderRadius:6,padding:"2px 8px",fontSize:11,fontWeight:600,border:"1px solid #e5e5e5",boxShadow:"0 2px 4px rgba(0,0,0,0.07),0 0 0 1px rgba(0,0,0,0.04)"}}>{t.statuses[s.status]}</span>
+                      <select value={s.status} onChange={async e=>{
+                        e.stopPropagation();
+                        const newStatus = e.target.value;
+                        const updated = {...s, status: newStatus};
+                        setSamples(p=>{
+                          const next = p.map(x=>x.id===s.id?updated:x);
+                          try{localStorage.setItem("harmony_samples",JSON.stringify(next));}catch{}
+                          return next;
+                        });
+                        try{
+                          await fetch(`${SUPA_URL}/rest/v1/samples`,{
+                            method:"POST",
+                            headers:{...SUPA_HEADERS,"Prefer":"resolution=merge-duplicates,return=minimal"},
+                            body:JSON.stringify([{id:updated.id,data:JSON.stringify({...updated,resultPdf:null})}])
+                          });
+                        }catch{}
+                      }}
+                        onClick={e=>e.stopPropagation()}
+                        style={{background:SC[s.status]||"#f5f5f7",color:"#fff",border:"none",borderRadius:6,padding:"3px 8px",fontSize:11,fontWeight:600,cursor:"pointer",outline:"none",appearance:"none",WebkitAppearance:"none",paddingInlineEnd:18,backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='white'/%3E%3C/svg%3E")`,backgroundRepeat:"no-repeat",backgroundPosition:"calc(100% - 5px) center"}}>
+                        {Object.entries(t.statuses).map(([k,v])=>(
+                          <option key={k} value={k} style={{background:"#fff",color:"#111"}}>{v}</option>
+                        ))}
+                      </select>
                       {inOther && <div style={{fontSize:10,color:"#aaa",marginTop:2}}>{s.shipmentNumber}</div>}
                     </div>
                   </div>
