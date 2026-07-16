@@ -1888,7 +1888,7 @@ function ResultsPage({ t, samples, setSamples }) {
 
 
 // ─── ShipmentsPage ────────────────────────────────────────────────────────────
-function ShipmentsPage({ t, samples, setSamples }) {
+function ShipmentsPage({ t, samples, setSamples, onRefresh }) {
   const mob = useIsMobile();
   const ar = t.dir === "rtl";
   const [search, setSearch] = useState("");
@@ -1897,6 +1897,7 @@ function ShipmentsPage({ t, samples, setSamples }) {
   const [editModal, setEditModal] = useState(null);        // shipNum being edited
   const [newShipId, setNewShipId] = useState("");
   const [newShipDate, setNewShipDate] = useState(new Date().toISOString().slice(0,10));
+  const [newShipStatus, setNewShipStatus] = useState("sent");
   const [selectedPatients, setSelectedPatients] = useState([]);
   const [patientSearch, setPatientSearch] = useState("");
   const [editingShipment, setEditingShipment] = useState(null);
@@ -1984,6 +1985,7 @@ function ShipmentsPage({ t, samples, setSamples }) {
     setShowNewModal(false);
     setNewShipId("");
     setNewShipDate(new Date().toISOString().slice(0,10));
+    setNewShipStatus("sent");
     setSelectedPatients([]);
     setPatientSearch("");
     setSelected(shipId);
@@ -2235,6 +2237,17 @@ function ShipmentsPage({ t, samples, setSamples }) {
                 </label>
                 <input type="date" value={newShipDate} onChange={e=>setNewShipDate(e.target.value)}
                   style={inp()}/>
+              </div>
+              <div>
+                <label style={{display:"block",fontSize:13,fontWeight:600,color:"#555",marginBottom:6}}>
+                  📋 {ar?"حالة الشحنة":"Shipment Status"}
+                </label>
+                <select value={newShipStatus} onChange={e=>setNewShipStatus(e.target.value)}
+                  style={{...inp(),cursor:"pointer"}}>
+                  <option value="sent">{ar?"أُرسلت للخارج":"Sent Abroad"}</option>
+                  <option value="abroad">{ar?"وصلت":"Arrived"}</option>
+                  <option value="overdue">{ar?"متأخرة ⚠":"Overdue ⚠"}</option>
+                </select>
               </div>
             </div>
 
@@ -4306,12 +4319,22 @@ function App() {
       });
       const parsed = [...seen.values()];
       // Only update state if data changed
+      // Auto-mark overdue: samples with status "sent" for more than 5 days
+      const today = new Date();
+      const withOverdue = parsed.map(s => {
+        if (s.status === "sent" && s.sentDate) {
+          const days = Math.floor((today - new Date(s.sentDate)) / (1000*60*60*24));
+          if (days > 5) return {...s, status: "overdue"};
+        }
+        return s;
+      });
+
       setSamplesState(prev => {
         const prevStr = JSON.stringify(prev.map(s=>s.id).sort());
-        const newStr = JSON.stringify(parsed.map(s=>s.id).sort());
-        if (prevStr === newStr && prev.length === parsed.length) return prev;
-        try { localStorage.setItem("harmony_samples", JSON.stringify(parsed)); } catch {}
-        return parsed;
+        const newStr = JSON.stringify(withOverdue.map(s=>s.id).sort());
+        if (prevStr === newStr && prev.length === withOverdue.length) return prev;
+        try { localStorage.setItem("harmony_samples", JSON.stringify(withOverdue)); } catch {}
+        return withOverdue;
       });
       if (!silent) setSyncStatus("ok");
     } catch { if (!silent) setSyncStatus("ok"); }
@@ -4772,7 +4795,7 @@ function App() {
           {tab==="results" && <ResultsPage t={t} samples={samples} setSamples={setSamples}/>}
           {tab==="addtest" && <AddTestPage t={t}/>}
           {tab==="tests" && isAdmin && <TestsPage t={t} isAdmin={isAdmin}/>}
-          {tab==="shipments" && <ShipmentsPage t={t} samples={samples} setSamples={setSamples}/>}
+          {tab==="shipments" && <ShipmentsPage t={t} samples={samples} setSamples={setSamples} onRefresh={loadSamplesFromSupabase}/>}
           {tab==="settings" && <SettingsPage t={t} currentUser={currentUser} setCurrentUser={setCurrentUser} isAdmin={isAdmin} onLogout={handleLogout}/>}
           {tab==="invoice" && <InvoicePage t={t} samples={samples} setSamples={setSamples} isAdmin={isAdmin}/>}
           {tab==="clientsbook" && <ClientsBookPage t={t} isAdmin={isAdmin}/>}
