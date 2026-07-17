@@ -718,14 +718,18 @@ function SampleForm({ t, samples, editTarget, onSave, onCancel, isAdmin }) {
                         if(labMatch){set("_labOther",false);set("externalLab",labMatch);}
                         else{set("_labOther",true);set("externalLab",found.lab);}
                       }
-                      // Auto-fill price with original currency
-                      const effectivePrice = priceOverrides[found.name] !== undefined
+                      // Auto-fill price converted to EGP
+                      const rawPrice = priceOverrides[found.name] !== undefined
                         ? Number(priceOverrides[found.name])
                         : Number(found.price||0);
-                      const currency = found.currency || "USD";
-                      if(effectivePrice > 0) {
-                        set("salePrice", effectivePrice);
-                        set("saleCurrency", currency);
+                      const currency = found.currency || "EGP";
+                      if(rawPrice > 0) {
+                        let egpPrice = rawPrice;
+                        if (currency === "USD") egpPrice = Math.round(rawPrice * 49);
+                        else if (currency === "AED") egpPrice = Math.round(rawPrice * 13.5);
+                        else if (currency === "EUR") egpPrice = Math.round(rawPrice * 53);
+                        else if (currency === "GBP") egpPrice = Math.round(rawPrice * 62);
+                        set("salePrice", egpPrice);
                       }
                     }
                   }
